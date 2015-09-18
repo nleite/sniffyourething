@@ -5,7 +5,7 @@ import socket
 import logging
 logging.getLogger('scapy.runtime').setLevel(logging.ERROR)
 from scapy.all import *
-from scapy.layers import http
+from scapy_http import http
 import facebook
 import requests
 
@@ -16,19 +16,19 @@ class Sniffer(object):
         self._collection = collection
 
     def persist(self, document):
-        self._collection.save(document)
+        print('here')
+        self._collection.insert_many(document)
 
-class FacebookSniffer(object):
+class FacebookSniffer(Sniffer):
 
-    def __init__(self, access_token, userid):
+    def __init__(self, access_token, userid, collection):
+        super(FacebookSniffer, self).__init__(collection)
         self.access_token =access_token
         self.userid=userid
 
     def process_posts(self, posts):
         """lets process the incoming json messages"""
-#TODO add data treatment
-        docs = posts['data']
-        self.persist(docs)
+        self.persist(posts['data'])
 
     def sniff_posts(self):
         graph = facebook.GraphAPI(self.access_token)
@@ -36,6 +36,13 @@ class FacebookSniffer(object):
         posts = graph.get_connections(profile['id'], 'posts')
 
         while True:
+            if 'data' not in posts or len(posts['data']) < 1:
+                print('NO MORE DATA')
+                break
+            self.process_posts(posts)
+            if 'paging' not in posts:
+                print(posts)
+                break
             r = requests.get(posts['paging']['next'])
             if r.status_code >= 200 and r.status_code < 300:
                 posts = r.json()
@@ -47,8 +54,7 @@ class NetworkSniffer(Sniffer):
     """NetworkSniffer is a simple scappy implementation that will sniff a given protocol and store it into a collection
     """
     def __init__(self, collection):
-        super().__init__(self)
-        self._q = queue
+        super(NetworkSniffer, self).__init__(collection)
         self.packagecount = 0
 
     def startup(self):
@@ -68,5 +74,5 @@ class NetworkSniffer(Sniffer):
             doc['httprequest'] = packet[TCP][http.HTTPRequest].fields
 
 
-        self.persist(doc)
+        self.persist([doc])
 
