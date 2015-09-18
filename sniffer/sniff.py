@@ -58,7 +58,7 @@ class NetworkSniffer(Sniffer):
         self.packagecount = 0
 
     def startup(self):
-        sniff(filter='tcp', prn=self.action)
+        sniff(filter='tcp', prn=self.action, store=0)
 
     def action(self,packet):
         self.packagecount += 1
