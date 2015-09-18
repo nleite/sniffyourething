@@ -8,6 +8,8 @@ from scapy.all import *
 from scapy_http import http
 import facebook
 import requests
+from TwitterAPI import TwitterAPI
+import simplejson as json
 
 class Sniffer(object):
     """Sniffer: Base sniffer class that will hold all comon sniffers methods like persisting documents"""
@@ -16,7 +18,6 @@ class Sniffer(object):
         self._collection = collection
 
     def persist(self, document):
-        print('here')
         self._collection.insert_many(document)
 
 class FacebookSniffer(Sniffer):
@@ -41,7 +42,6 @@ class FacebookSniffer(Sniffer):
                 break
             self.process_posts(posts)
             if 'paging' not in posts:
-                print(posts)
                 break
             r = requests.get(posts['paging']['next'])
             if r.status_code >= 200 and r.status_code < 300:
@@ -75,4 +75,22 @@ class NetworkSniffer(Sniffer):
 
 
         self.persist([doc])
+
+
+class TwitterSniffer(Sniffer):
+
+    def __init__(self, collection,twitter_credentials, terms):
+        super(TwitterSniffer, self).__init__(collection)
+        self._terms = terms
+        self._credentials = twitter_credentials
+
+    def startup(self):
+        self._api = TwitterAPI(*self._credentials.all())
+
+    def action(self):
+        r = self._api.request('statuses/filter', {'track': self._terms})
+
+        for item in r:
+            self.persist([item])
+
 
