@@ -23,5 +23,5 @@ simplegeneric==0.8.1
 simplejson==3.8.0
 traitlets==4.0.0
 TwitterAPI==2.3.3.4
-urllib3==1.12
+urllib3==1.26.5
 wheel==0.24.0
