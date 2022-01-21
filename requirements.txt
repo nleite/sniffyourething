@@ -6,7 +6,7 @@ gevent==1.0.2
 gnureadline==6.3.3
 greenlet==0.4.9
 ipdb==0.8.1
-ipython==4.0.0
+ipython==7.16.3
 ipython-genutils==0.1.0
 oauthlib==1.0.3
 path.py==8.1.1
